@@ -1,10 +1,6 @@
 [build]
-  command = "# no build command"
   functions = "netlify/functions"
   publish = "public"
-
-[functions]
-  directory = "netlify/functions"
 
 [[redirects]]
   from = "/api/*"

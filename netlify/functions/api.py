@@ -315,7 +315,7 @@ def update_record(type, row_id):
 @app.route('/api/data', methods=['GET'])
 def get_data():
     try:
-        sh = get_sheet()
+        sh = get_spreadsheet()
         # get_all_values returns a list of lists (rows)
         rows = sh.get_all_values()
         return jsonify(rows), 200
