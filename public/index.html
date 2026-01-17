@@ -633,6 +633,15 @@
             
             try {
                 const res = await fetch(`${API_BASE}/data/${type}`);
+                
+                // Check if response is JSON
+                const contentType = res.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    const text = await res.text();
+                    console.error("API Error (Not JSON):", text);
+                    throw new Error("API not ready or not found. Please check Netlify deployment.");
+                }
+
                 let data = await res.json();
                 
                 if (!res.ok) throw new Error("Load failed");
