@@ -39,8 +39,14 @@ function parseJsonBody(event) {
 
 function normalizePath(eventPath) {
   const raw = eventPath || "/";
-  const withoutFnPrefix = raw.replace(/^\/\.netlify\/functions\/api/, "");
-  return withoutFnPrefix === "" ? "/" : withoutFnPrefix;
+  let path = raw;
+
+  path = path.replace(/^\/\.netlify\/functions\/api/, "");
+  path = path.replace(/^\/api/, "");
+
+  if (path === "") return "/";
+  if (!path.startsWith("/")) return `/${path}`;
+  return path;
 }
 
 function formatThaiMonthYear(dateStr) {
@@ -452,4 +458,3 @@ exports.handler = async (event) => {
     return jsonResponse(500, { error: String(e?.message || e) });
   }
 };
-
