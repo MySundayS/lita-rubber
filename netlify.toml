@@ -3,11 +3,8 @@
   functions = "netlify/functions"
   publish = "public"
 
-[functions]
-  directory = "netlify/functions"
-
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  to = "/.netlify/functions/app/:splat"
   status = 200
   force = true
