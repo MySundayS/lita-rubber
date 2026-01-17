@@ -3,6 +3,7 @@ import json
 import awsgi
 from flask import Flask, request, jsonify
 import gspread
+import requests
 from google.oauth2.service_account import Credentials
 
 app = Flask(__name__)
