@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LitaRubber - ระบบจัดการข้อมูลยางพารา</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#18181b', // zinc-900
+                        secondary: '#71717a', // zinc-500
+                        accent: '#2563eb', // blue-600
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e4e4e7; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d4d4d8; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-gray-100 sticky top-0 z-50 backdrop-blur-md bg-opacity-80">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center font-bold text-lg">L</div>
+                    <div>
+                        <h1 class="font-bold text-lg tracking-tight text-primary leading-none">LitaRubber</h1>
+                        <p class="text-[10px] text-secondary font-medium tracking-wide">MINIMALIST EDITION</p>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-1 bg-gray-100 p-1 rounded-lg">
+                    <button onclick="switchTab('rubber')" id="tab-btn-rubber" class="px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 bg-white shadow-sm text-primary">รับซื้อยาง</button>
+                    <button onclick="switchTab('expense')" id="tab-btn-expense" class="px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-secondary hover:text-primary">ค่าใช้จ่าย</button>
+                    <button onclick="switchTab('summary')" id="tab-btn-summary" class="px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-secondary hover:text-primary">สรุปยอด</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Tab Bar (Bottom) -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-3 flex justify-between z-50 pb-safe">
+        <button onclick="switchTab('rubber')" id="mob-btn-rubber" class="flex flex-col items-center gap-1 text-primary">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span class="text-[10px] font-medium">รับซื้อ</span>
+        </button>
+        <button onclick="switchTab('expense')" id="mob-btn-expense" class="flex flex-col items-center gap-1 text-gray-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            <span class="text-[10px] font-medium">ค่าใช้จ่าย</span>
+        </button>
+        <button onclick="switchTab('summary')" id="mob-btn-summary" class="flex flex-col items-center gap-1 text-gray-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            <span class="text-[10px] font-medium">สรุป</span>
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full mb-20 md:mb-0">
+        
+        <!-- Section 1: Rubber -->
+        <div id="rubber" class="form-section fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Form Card -->
+                <div class="lg:col-span-4">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                        <h2 class="text-lg font-semibold text-primary mb-1">บันทึกรับซื้อ</h2>
+                        <p class="text-sm text-secondary mb-6">กรอกข้อมูลการรับซื้อยางพารา</p>
+                        
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">วันที่</label>
+                                    <input type="date" id="rub_date" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">สาขา</label>
+                                    <input type="text" id="rub_branch" value="สำนักงานใหญ่" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">กอง (Zone)</label>
+                                    <input type="text" id="rub_zone" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none" placeholder="-">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">ชื่อลูกค้า</label>
+                                    <input type="text" id="rub_name" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none" placeholder="ชื่อลูกค้า...">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">น้ำหนัก (กก.)</label>
+                                    <input type="number" id="rub_amount" oninput="calcRubberTotal()" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none" placeholder="0.00">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">ราคา (บาท)</label>
+                                    <input type="number" id="rub_price" oninput="calcRubberTotal()" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">รวมเป็นเงิน</label>
+                                <div class="relative">
+                                    <input type="text" id="rub_total" readonly class="w-full bg-gray-100 border border-gray-200 text-primary text-lg font-medium rounded-xl p-3 pl-4 block outline-none cursor-not-allowed" placeholder="0.00">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-secondary text-xs">บาท</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">สถานะ</label>
+                                <select id="rub_status" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none">
+                                    <option value="ปกติ">ปกติ</option>
+                                    <option value="ค้างจ่าย">ค้างจ่าย</option>
+                                    <option value="โอนแล้ว">โอนแล้ว</option>
+                                </select>
+                            </div>
+                            
+                            <button onclick="submitRubber()" id="btn-submit-rubber" class="w-full text-white bg-primary hover:bg-black focus:ring-4 focus:ring-gray-300 font-medium rounded-xl text-sm px-5 py-3.5 text-center mt-4 transition-all shadow-lg shadow-gray-200">
+                                บันทึกข้อมูล
+                            </button>
+                            <div id="msg_rubber" class="text-center text-xs font-medium mt-3 h-5"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Card -->
+                <div class="lg:col-span-8">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px]">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
+                            <div>
+                                <h3 class="font-semibold text-primary">รายการล่าสุด</h3>
+                                <p class="text-xs text-secondary mt-0.5">ข้อมูลอัปเดตอัตโนมัติ (Realtime)</p>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                                <span class="relative flex h-2 w-2">
+                                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                  <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                </span>
+                                Online
+                            </span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left whitespace-nowrap">
+                                <thead class="text-xs text-secondary uppercase bg-gray-50/50 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-6 py-4 font-medium">สาขา</th>
+                                        <th class="px-6 py-4 font-medium">กอง</th>
+                                        <th class="px-6 py-4 font-medium">เวลา</th>
+                                        <th class="px-6 py-4 font-medium">ชื่อลูกค้า</th>
+                                        <th class="px-6 py-4 font-medium text-right">น้ำหนัก</th>
+                                        <th class="px-6 py-4 font-medium text-right">ราคา</th>
+                                        <th class="px-6 py-4 font-medium text-right">รวมเงิน</th>
+                                        <th class="px-6 py-4 font-medium text-center">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody_rubber" class="divide-y divide-gray-100">
+                                    <!-- Data -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Expense -->
+        <div id="expense" class="form-section fade-in hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Form Card -->
+                <div class="lg:col-span-4">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                        <h2 class="text-lg font-semibold text-primary mb-1">บันทึกค่าใช้จ่าย</h2>
+                        <p class="text-sm text-secondary mb-6">กรอกรายละเอียดค่าใช้จ่ายต่างๆ</p>
+                        
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">วันที่</label>
+                                    <input type="date" id="exp_date" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none">
+                                </div>
+                                 <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">สาขา</label>
+                                    <input type="text" id="exp_branch" value="สำนักงานใหญ่" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">ประเภท</label>
+                                    <select id="exp_type" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none">
+                                        <option value="ทั่วไป">ทั่วไป</option>
+                                        <option value="ค่าแรง">ค่าแรง</option>
+                                        <option value="ค่าขนส่ง">ค่าขนส่ง</option>
+                                        <option value="อุปกรณ์">อุปกรณ์</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">รายการ</label>
+                                    <input type="text" id="exp_name" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none" placeholder="ระบุรายการ...">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">จำนวนเงิน (บาท)</label>
+                                <div class="relative">
+                                    <input type="number" id="exp_amount" class="w-full bg-gray-50 border border-gray-200 text-primary text-lg font-medium rounded-xl p-3 pl-8 focus:ring-2 focus:ring-primary focus:border-primary block transition-all outline-none" placeholder="0.00">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-secondary">฿</span>
+                                </div>
+                            </div>
+                            
+                            <button onclick="submitExpense()" class="w-full text-white bg-primary hover:bg-black focus:ring-4 focus:ring-gray-300 font-medium rounded-xl text-sm px-5 py-3.5 text-center mt-4 transition-all shadow-lg shadow-gray-200">
+                                ยืนยันการบันทึก
+                            </button>
+                            <div id="msg_expense" class="text-center text-xs font-medium mt-3 h-5"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Card -->
+                <div class="lg:col-span-8">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px]">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
+                            <div>
+                                <h3 class="font-semibold text-primary">รายการล่าสุด</h3>
+                                <p class="text-xs text-secondary mt-0.5">ข้อมูลอัปเดตอัตโนมัติ (Realtime)</p>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                                <span class="relative flex h-2 w-2">
+                                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                  <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                </span>
+                                Online
+                            </span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left whitespace-nowrap">
+                                <thead class="text-xs text-secondary uppercase bg-gray-50/50 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-6 py-4 font-medium">สาขา</th>
+                                        <th class="px-6 py-4 font-medium">ประเภท</th>
+                                        <th class="px-6 py-4 font-medium">รายการ</th>
+                                        <th class="px-6 py-4 font-medium text-right">จำนวนเงิน</th>
+                                        <th class="px-6 py-4 font-medium text-center">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody_expense" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Summary -->
+        <div id="summary" class="form-section fade-in hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-4">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                        <h2 class="text-lg font-bold text-primary mb-6">ส่งยอดประจำวัน</h2>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">วันที่</label>
+                                    <input type="date" id="sum_date" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">สาขา</label>
+                                    <input type="text" id="sum_branch" value="สำนักงานใหญ่" class="w-full bg-gray-50 border border-gray-200 text-primary text-sm rounded-xl focus:ring-2 focus:ring-primary focus:border-primary block p-3 transition-all outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-[10px] font-bold text-secondary mb-1 uppercase">ใบ 1,000</label>
+                                <input type="number" id="b1000" oninput="calcSumTotal()" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm outline-none text-center" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-secondary mb-1 uppercase">ใบ 500</label>
+                                <input type="number" id="b500" oninput="calcSumTotal()" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm outline-none text-center" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-secondary mb-1 uppercase">ใบ 100</label>
+                                <input type="number" id="b100" oninput="calcSumTotal()" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm outline-none text-center" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-secondary mb-1 uppercase">ใบ 50</label>
+                                <input type="number" id="b50" oninput="calcSumTotal()" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm outline-none text-center" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-secondary mb-1 uppercase">ใบ 20</label>
+                                <input type="number" id="b20" oninput="calcSumTotal()" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm outline-none text-center" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-secondary mb-1 uppercase">เหรียญ</label>
+                                <input type="number" id="coins" oninput="calcSumTotal()" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm outline-none text-center" placeholder="0">
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wider">ยอดรวมทั้งสิ้น</label>
+                            <input type="text" id="sum_total" readonly class="w-full bg-gray-100 border border-gray-200 text-primary text-lg font-bold rounded-xl p-3 text-center outline-none" placeholder="0.00">
+                        </div>
+
+                        <div class="mb-6">
+                             <label class="block text-xs font-medium text-secondary mb-2">สถานะยอดเงิน</label>
+                             <div class="grid grid-cols-3 gap-2">
+                                 <label class="cursor-pointer">
+                                     <input type="radio" name="status_radio" value="ครบถ้วน" checked class="peer sr-only" onchange="document.getElementById('sum_status').value=this.value">
+                                     <div class="text-center py-2 rounded-lg border border-gray-200 text-xs font-medium text-secondary peer-checked:bg-green-50 peer-checked:text-green-600 peer-checked:border-green-200 transition-all">ครบถ้วน</div>
+                                 </label>
+                                 <label class="cursor-pointer">
+                                     <input type="radio" name="status_radio" value="เกิน" class="peer sr-only" onchange="document.getElementById('sum_status').value=this.value">
+                                     <div class="text-center py-2 rounded-lg border border-gray-200 text-xs font-medium text-secondary peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-200 transition-all">เกิน</div>
+                                 </label>
+                                 <label class="cursor-pointer">
+                                     <input type="radio" name="status_radio" value="ขาด" class="peer sr-only" onchange="document.getElementById('sum_status').value=this.value">
+                                     <div class="text-center py-2 rounded-lg border border-gray-200 text-xs font-medium text-secondary peer-checked:bg-red-50 peer-checked:text-red-600 peer-checked:border-red-200 transition-all">ขาด</div>
+                                 </label>
+                             </div>
+                             <input type="hidden" id="sum_status" value="ครบถ้วน">
+                        </div>
+
+                        <button onclick="submitSummary()" class="w-full text-white bg-primary hover:bg-black font-medium rounded-xl text-sm px-5 py-3.5 shadow-lg shadow-gray-200">
+                            ส่งยอดเงิน
+                        </button>
+                        <div id="msg_summary" class="text-center text-xs font-medium mt-3 h-5"></div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8">
+                    <h3 class="text-sm font-semibold text-secondary mb-4 uppercase tracking-wide px-2">ประวัติการส่งยอด</h3>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full min-h-[400px]">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left whitespace-nowrap">
+                                <thead class="text-xs text-secondary uppercase bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3">วันที่</th>
+                                        <th class="px-6 py-3">สาขา</th>
+                                        <th class="px-6 py-3 text-center">สถานะ</th>
+                                        <th class="px-3 py-3 text-right text-[10px]">1000</th>
+                                        <th class="px-3 py-3 text-right text-[10px]">500</th>
+                                        <th class="px-3 py-3 text-right text-[10px]">100</th>
+                                        <th class="px-3 py-3 text-right text-[10px]">50</th>
+                                        <th class="px-3 py-3 text-right text-[10px]">20</th>
+                                        <th class="px-3 py-3 text-right text-[10px]">เหรียญ</th>
+                                        <th class="px-6 py-3 text-right">ยอดรวม</th>
+                                        <th class="px-6 py-3 text-center">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody_summary" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_BASE = '/api';
+        let currentTab = 'rubber';
+        let editingRowId = null;
+        let dataStore = { rubber: [], expense: [], summary: [] }; // Store data for all tabs
+
+        function switchTab(tab) {
+            cancelEdit(); // Cancel any pending edit when switching tabs
+            currentTab = tab;
+            
+            // Desktop Tabs
+            ['rubber', 'expense', 'summary'].forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tab) {
+                    btn.classList.remove('text-secondary', 'hover:text-primary');
+                    btn.classList.add('bg-white', 'shadow-sm', 'text-primary');
+                    btn.parentElement.classList.remove('bg-gray-100');
+                } else {
+                    btn.classList.add('text-secondary', 'hover:text-primary');
+                    btn.classList.remove('bg-white', 'shadow-sm', 'text-primary');
+                }
+            });
+
+            // Mobile Tabs
+            ['rubber', 'expense', 'summary'].forEach(t => {
+                const btn = document.getElementById(`mob-btn-${t}`);
+                if (t === tab) {
+                    btn.classList.remove('text-gray-400');
+                    btn.classList.add('text-primary');
+                } else {
+                    btn.classList.add('text-gray-400');
+                    btn.classList.remove('text-primary');
+                }
+            });
+
+            // Content Sections
+            document.querySelectorAll('.form-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tab).classList.remove('hidden');
+            
+            loadData(tab);
+        }
+
+        function getNow() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-CA'); 
+            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+            return { dateStr, timeStr };
+        }
+        
+        // Auto-fill dates on load
+        window.onload = function() {
+            const { dateStr } = getNow();
+            document.getElementById('rub_date').value = dateStr;
+            document.getElementById('exp_date').value = dateStr;
+            document.getElementById('sum_date').value = dateStr;
+            loadData('rubber');
+            loadData('expense');
+            loadData('summary');
+        };
+
+        function calcRubberTotal() {
+            const amount = parseFloat(document.getElementById('rub_amount').value) || 0;
+            const price = parseFloat(document.getElementById('rub_price').value) || 0;
+            const total = amount * price;
+            document.getElementById('rub_total').value = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function calcSumTotal() {
+            const b1000 = Number(document.getElementById('b1000').value) || 0;
+            const b500 = Number(document.getElementById('b500').value) || 0;
+            const b100 = Number(document.getElementById('b100').value) || 0;
+            const b50 = Number(document.getElementById('b50').value) || 0;
+            const b20 = Number(document.getElementById('b20').value) || 0;
+            const coins = Number(document.getElementById('coins').value) || 0;
+            const total = (b1000*1000) + (b500*500) + (b100*100) + (b50*50) + (b20*20) + coins;
+            document.getElementById('sum_total').value = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            return total;
+        }
+
+        async function postData(endpoint, payload, msgId) {
+            const msg = document.getElementById(msgId);
+            msg.innerText = "กำลังบันทึก...";
+            msg.className = "text-center text-xs font-medium mt-3 h-5 text-gray-500";
+            
+            try {
+                // Determine if we are updating or creating
+                let url = `${API_BASE}${endpoint}`;
+                if (editingRowId) {
+                    url = `${API_BASE}/update/${currentTab}/${editingRowId}`;
+                }
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ values: payload })
+                });
+                const result = await res.json();
+                
+                if (res.ok) {
+                    msg.innerText = editingRowId ? "แก้ไขสำเร็จ ✓" : "บันทึกสำเร็จ ✓";
+                    msg.className = "text-center text-xs font-medium mt-3 h-5 text-green-600";
+                    
+                    cancelEdit(); // Reset form and mode
+                    loadData(currentTab);
+                    setTimeout(() => msg.innerText = "", 3000);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (e) {
+                msg.innerText = "เกิดข้อผิดพลาด: " + e.message;
+                msg.className = "text-center text-xs font-medium mt-3 h-5 text-red-500";
+            }
+        }
+
+        function cancelEdit() {
+            editingRowId = null;
+            
+            // Reset buttons
+            document.querySelectorAll('button[type="button"]').forEach(btn => {
+                 if (btn.innerText === 'บันทึกการแก้ไข') btn.innerText = 'บันทึกข้อมูล';
+            });
+
+            // Clear inputs
+            if (currentTab === 'rubber') {
+                document.getElementById('rub_name').value = '';
+                document.getElementById('rub_amount').value = '';
+                document.getElementById('rub_price').value = '';
+                document.getElementById('rub_zone').value = '';
+                document.getElementById('rub_total').value = '';
+                // Keep Date, Branch, Status
+            } else if (currentTab === 'expense') {
+                document.getElementById('exp_name').value = '';
+                document.getElementById('exp_amount').value = '';
+            } else {
+                ['b1000','b500','b100','b50','b20','coins'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('sum_total').value = '';
+            }
+        }
+
+        function editItem(id) {
+            const item = dataStore[currentTab].find(d => d.id === id);
+            if (!item) return;
+            
+            editingRowId = id;
+            const values = item.values;
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (currentTab === 'rubber') {
+                // [Seq, Name, Amount, Price, Total, Date, Time, Zone, Branch, Status]
+                document.getElementById('rub_name').value = values[1] || '';
+                document.getElementById('rub_amount').value = values[2] || '';
+                document.getElementById('rub_price').value = values[3] || '';
+                document.getElementById('rub_date').value = values[5] || '';
+                document.getElementById('rub_zone').value = values[7] || '';
+                document.getElementById('rub_branch').value = values[8] || '';
+                document.getElementById('rub_status').value = values[9] || '';
+                calcRubberTotal();
+                
+                document.querySelector('#rubber button.bg-primary').innerText = "บันทึกการแก้ไข";
+                
+            } else if (currentTab === 'expense') {
+                // [Date, Branch, Type, Item, Amount]
+                document.getElementById('exp_date').value = values[0] || '';
+                document.getElementById('exp_branch').value = values[1] || '';
+                document.getElementById('exp_type').value = values[2] || '';
+                document.getElementById('exp_name').value = values[3] || '';
+                document.getElementById('exp_amount').value = values[4] || '';
+                
+                document.querySelector('#expense button.bg-primary').innerText = "บันทึกการแก้ไข";
+
+            } else {
+                // [Date, Branch, 1000, 500, 100, 50, 20, Coins, Total, Status]
+                document.getElementById('sum_date').value = values[0] || '';
+                document.getElementById('sum_branch').value = values[1] || '';
+                document.getElementById('b1000').value = values[2] || '';
+                document.getElementById('b500').value = values[3] || '';
+                document.getElementById('b100').value = values[4] || '';
+                document.getElementById('b50').value = values[5] || '';
+                document.getElementById('b20').value = values[6] || '';
+                document.getElementById('coins').value = values[7] || '';
+                document.getElementById('sum_status').value = values[9] || '';
+                calcSumTotal();
+                
+                document.querySelector('#summary button.bg-primary').innerText = "บันทึกการแก้ไข";
+            }
+        }
+
+        async function deleteItem(id) {
+            if(!confirm("ยืนยันการลบข้อมูลนี้?")) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/delete/${currentTab}/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    loadData(currentTab);
+                } else {
+                    alert("ลบไม่สำเร็จ");
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        function submitRubber() {
+            const { timeStr } = getNow();
+            const dateVal = document.getElementById('rub_date').value || getNow().dateStr;
+            const name = document.getElementById('rub_name').value;
+            const amount = document.getElementById('rub_amount').value;
+            const price = document.getElementById('rub_price').value;
+            const zone = document.getElementById('rub_zone').value;
+            const branch = document.getElementById('rub_branch').value;
+            const status = document.getElementById('rub_status').value;
+            
+            if(!name || !amount) return alert("กรุณากรอกชื่อและจำนวนยาง");
+            // API expects: [Name, Amount, Price, Date, Time, Zone, Branch, Status]
+            postData('/record/rubber', [name, amount, price, dateVal, timeStr, zone, branch, status], 'msg_rubber');
+        }
+
+        function submitExpense() {
+            const dateVal = document.getElementById('exp_date').value || getNow().dateStr;
+            const branch = document.getElementById('exp_branch').value;
+            const type = document.getElementById('exp_type').value;
+            const name = document.getElementById('exp_name').value;
+            const amount = document.getElementById('exp_amount').value;
+            
+            if(!name || !amount) return alert("กรุณากรอกรายละเอียด");
+            // API expects: [Date, Branch, Type, ExpenseName, Amount]
+            postData('/record/expense', [dateVal, branch, type, name, amount], 'msg_expense');
+        }
+
+        function submitSummary() {
+            const dateVal = document.getElementById('sum_date').value || getNow().dateStr;
+            const branch = document.getElementById('sum_branch').value;
+            const b1000 = Number(document.getElementById('b1000').value) || 0;
+            const b500 = Number(document.getElementById('b500').value) || 0;
+            const b100 = Number(document.getElementById('b100').value) || 0;
+            const b50 = Number(document.getElementById('b50').value) || 0;
+            const b20 = Number(document.getElementById('b20').value) || 0;
+            const coins = Number(document.getElementById('coins').value) || 0;
+            const status = document.getElementById('sum_status').value;
+            const total = calcSumTotal();
+            
+            // API expects: [Date, Branch, 1000, 500, 100, 50, 20, Coins, Total, Status]
+            postData('/record/summary', [dateVal, branch, b1000, b500, b100, b50, b20, coins, total, status], 'msg_summary');
+        }
+
+        async function loadData(type) {
+            if (!type) type = currentTab;
+            const tbody = document.getElementById(`tbody_${type}`);
+            
+            if (tbody.children.length === 0) {
+                 tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-xs text-gray-400">Loading...</td></tr>';
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/data/${type}`);
+                let data = await res.json();
+                
+                if (!res.ok) throw new Error("Load failed");
+                
+                // data is now [{id: 1, values: [...]}, ...]
+                // Filter empty rows based on values
+                data = data.filter(item => item.values.some(c => c.trim() !== ""));
+                
+                if (data.length > 0) data.shift(); // Remove header
+                dataStore[type] = [...data]; // Store for editing
+                data.reverse(); 
+                
+                let html = '';
+                data.forEach(item => {
+                    const row = item.values;
+                    const id = item.id;
+                    
+                    if (type === 'rubber') {
+                        // row: [Seq, Name, Amount, Price, Total, Date, Time, Zone, Branch, Status, ...]
+                        // Table: Branch(8), Zone(7), Time(6), Name(1), Weight(2), Price(3), Total(4), Manage
+                        html += `<tr class="bg-white border-b hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 text-gray-900">${row[8]||'-'}</td>
+                            <td class="px-6 py-4 text-gray-600">${row[7]||'-'}</td>
+                            <td class="px-6 py-4 text-gray-500 font-mono text-xs">${row[6]||''}</td>
+                            <td class="px-6 py-4 font-medium text-gray-900">${row[1]||'-'}</td>
+                            <td class="px-6 py-4 text-right text-gray-600 font-mono">${row[2]||'0'}</td>
+                            <td class="px-6 py-4 text-right text-gray-600 font-mono">${row[3]||'0'}</td>
+                            <td class="px-6 py-4 text-right font-bold text-gray-900 font-mono">${Number(row[4]||0).toLocaleString()}</td>
+                            <td class="px-6 py-4 text-center space-x-2">
+                                <button onclick="editItem(${id})" class="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-50 rounded px-2 py-1">แก้ไข</button>
+                                <button onclick="deleteItem(${id})" class="text-xs text-red-600 hover:text-red-800 border border-red-200 bg-red-50 rounded px-2 py-1">ลบ</button>
+                            </td>
+                        </tr>`;
+                    } else if (type === 'expense') {
+                        // row: [Date, Branch, Type, Item, Amount]
+                        // Table: Branch(1), Type(2), Item(3), Amount(4), Manage
+                        html += `<tr class="bg-white border-b hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 text-gray-900">${row[1]||'-'}</td>
+                            <td class="px-6 py-4 text-gray-600 text-xs uppercase">${row[2]||''}</td>
+                            <td class="px-6 py-4 font-medium text-gray-900">${row[3]||'-'}</td>
+                            <td class="px-6 py-4 text-right font-bold text-red-500 font-mono">-${Number(row[4]||0).toLocaleString()}</td>
+                            <td class="px-6 py-4 text-center space-x-2">
+                                <button onclick="editItem(${id})" class="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-50 rounded px-2 py-1">แก้ไข</button>
+                                <button onclick="deleteItem(${id})" class="text-xs text-red-600 hover:text-red-800 border border-red-200 bg-red-50 rounded px-2 py-1">ลบ</button>
+                            </td>
+                        </tr>`;
+                    } else {
+                        // row: [Date, Branch, 1000, 500, 100, 50, 20, Coins, Total, Status]
+                        // Table: Date(0), Branch(1), Status(9), 1000(2), 500(3), 100(4), 50(5), 20(6), Coins(7), Total(8), Manage
+                        const statusColor = (row[9] === 'ครบถ้วน') ? 'text-green-600 bg-green-50' : (row[9] === 'ขาด' ? 'text-red-600 bg-red-50' : 'text-blue-600 bg-blue-50');
+                        html += `<tr class="bg-white border-b hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 text-gray-500 text-xs">${row[0]||''}</td>
+                            <td class="px-6 py-4 text-gray-900">${row[1]||'-'}</td>
+                            <td class="px-6 py-4 text-center"><span class="px-2 py-1 rounded-md text-[10px] font-medium ${statusColor}">${row[9]||'-'}</span></td>
+                            <td class="px-3 py-4 text-right text-gray-400 text-[10px] font-mono">${row[2]||0}</td>
+                            <td class="px-3 py-4 text-right text-gray-400 text-[10px] font-mono">${row[3]||0}</td>
+                            <td class="px-3 py-4 text-right text-gray-400 text-[10px] font-mono">${row[4]||0}</td>
+                            <td class="px-3 py-4 text-right text-gray-400 text-[10px] font-mono">${row[5]||0}</td>
+                            <td class="px-3 py-4 text-right text-gray-400 text-[10px] font-mono">${row[6]||0}</td>
+                            <td class="px-3 py-4 text-right text-gray-400 text-[10px] font-mono">${row[7]||0}</td>
+                            <td class="px-6 py-4 text-right font-bold text-gray-900 font-mono">${Number(row[8]||0).toLocaleString()}</td>
+                            <td class="px-6 py-4 text-center space-x-2">
+                                <button onclick="editItem(${id})" class="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 bg-blue-50 rounded px-2 py-1">แก้ไข</button>
+                                <button onclick="deleteItem(${id})" class="text-xs text-red-600 hover:text-red-800 border border-red-200 bg-red-50 rounded px-2 py-1">ลบ</button>
+                            </td>
+                        </tr>`;
+                    }
+                });
+                
+                if (html === '') html = '<tr><td colspan="11" class="px-6 py-8 text-center text-xs text-gray-400">ยังไม่มีข้อมูล</td></tr>';
+                tbody.innerHTML = html;
+                
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        setInterval(() => {
+            // Only reload if not editing to avoid overwriting form
+            if (!editingRowId) loadData(currentTab);
+        }, 5000);
+    </script>
+
+</body>
+</html>
