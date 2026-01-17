@@ -7,6 +7,11 @@ from google.oauth2.service_account import Credentials
 
 app = Flask(__name__)
 
+# Handle 404 errors with JSON response
+@app.errorhandler(404)
+def resource_not_found(e):
+    return jsonify(error=str(e)), 404
+
 # Configuration
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 SHEET_NAME = os.environ.get('SHEET_NAME', 'MyDatabase')
@@ -103,6 +108,7 @@ def get_worksheet(name):
         _worksheets_cache[name] = ws
         return ws
 
+@app.route('/record/rubber', methods=['POST'])
 @app.route('/api/record/rubber', methods=['POST'])
 def record_rubber():
     try:
@@ -158,6 +164,7 @@ def record_rubber():
         _sheet_obj = None
         return jsonify({"error": str(e)}), 500
 
+@app.route('/record/expense', methods=['POST'])
 @app.route('/api/record/expense', methods=['POST'])
 def record_expense():
     try:
@@ -182,6 +189,7 @@ def record_expense():
         _sheet_obj = None
         return jsonify({"error": str(e)}), 500
 
+@app.route('/record/summary', methods=['POST'])
 @app.route('/api/record/summary', methods=['POST'])
 def record_summary():
     try:
@@ -206,6 +214,7 @@ def record_summary():
         _sheet_obj = None
         return jsonify({"error": str(e)}), 500
 
+@app.route('/data/<type>', methods=['GET'])
 @app.route('/api/data/<type>', methods=['GET'])
 def get_data_by_type(type):
     ws = None
@@ -229,6 +238,7 @@ def get_data_by_type(type):
         return jsonify(data), 200
     return jsonify([]), 404
 
+@app.route('/delete/<type>/<int:row_id>', methods=['DELETE'])
 @app.route('/api/delete/<type>/<int:row_id>', methods=['DELETE'])
 def delete_record(type, row_id):
     ws = None
@@ -247,6 +257,7 @@ def delete_record(type, row_id):
             return jsonify({"error": str(e)}), 500
     return jsonify({"error": "Invalid type"}), 400
 
+@app.route('/update/<type>/<int:row_id>', methods=['POST'])
 @app.route('/api/update/<type>/<int:row_id>', methods=['POST'])
 def update_record(type, row_id):
     try:
@@ -310,7 +321,7 @@ def get_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Health check
+@app.route('/health', methods=['GET'])
 @app.route('/api/health', methods=['GET'])
 def health():
     return jsonify({"status": "ok"}), 200
